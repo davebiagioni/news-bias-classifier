@@ -220,8 +220,18 @@ def filter_top_words(lst, top_words):
 
   return lst
 
-def create_model_checkpoint(basename):
 
-  filepath = basename + '_{epoch:03d}_{val_loss:.5f}_{val_acc:.5f}.h5'
+def parse_model_name(name):
 
-  return os.path.join(basename, filepath), os.path.join(basename, basename + '.h5')
+  name = os.path.basename(name)
+  args = name.split('.h5')[0].split('_')
+
+  gru_dim, embed_dim, dense_dim = map(int, args[:3])
+  dropout = float(args[3])
+  bidirectional = bool(args[4])
+  maxlen, topn = map(int, args[5:7])
+  test_size = float(args[7])
+  batch_size = int(args[8])
+
+  return gru_dim, embed_dim, dense_dim, dropout, bidirectional, maxlen, topn, test_size, batch_size
+
