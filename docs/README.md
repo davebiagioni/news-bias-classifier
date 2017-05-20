@@ -6,7 +6,7 @@ __Under Construction :)__
 
 As an avid consumer of news articles, I'm fascinated by both the craft of journalism and the various ways in which personal, cultural and political biases can shine through even the most disciplined writing.  Beyond entertainment, given the recent polarization of our political arena, understanding bias in the news has become a practical problem that challenges us (normal people who ain't haters) as we try to understand the truth about our world through the eyes and words of others.
 
-Being a data scientist, learning about the recent hype around deep learning, I quickly found myself asking:  "Can a neural network understand political bias?  If so, in what way?  And how well?"  The answer to the first questions seems to be "pretty well", and I'll devote the rest of this post trying to explaining the why, the what, and the how.
+In my work as a data scientist, trying (among other things) to grok the recent hype around deep learning, I quickly found myself asking the question:  "Can a neural network understand political bias?  If so, in what way?  And how well?"  The short answer to the first questions seems to be "pretty well", and I'll devote the rest of this post trying to explaining the why, the what, and the how.
 
 For those not interested in technical details, feel free to skip to the [discussion](#Discussion) :)
 
@@ -14,15 +14,15 @@ For those not interested in technical details, feel free to skip to the [discuss
 
 Before describing the dataset, let me be a little more precise about the problem I wanted to solve.  It is essentially:
 
-> On a scale from 0 (conservative) to 10 (liberal), how politically biased is a given news article?
+> On a scale from 0 (conservative) to 1 (liberal), how politically biased is a given news article?
 
-So we're talking supervised learning (i.e., our training data are labeled) and the dataset needed to be generated accordingly.  Getting enough labeled data is often one of the biggest challenges in any machine learning application, and this problem was no different.  
+(Please don't attribute any additional meaning to those scores . . . they're just numerical labels! :)  In other words, it's a supervised learning problem (i.e., our training data are labeled) and the dataset needed to be generated accordingly.  Getting enough labeled data is often one of the biggest challenges in any machine learning application, and this problem was no different.  
 
-At last, after a lot of web searching, I couldn't find a dataset that had the information I wanted so I did what any hacker would do, and decided to create it myself!  Here's what I came up with:
+Ultimately, I couldn't find a data set that had the information I wanted so I did what any hacker would do, and decided to create it myself!  Here's what I came up with:
 
 1. Do a bunch of web searches to identify domains that are widely considered "liberal" or "conservative".
 1. For each of these domains, hand curate a list of RSS feeds that provide a daily, updated list of URLs for new stories from that site.
-1. Periodically retrieve new stories for each RSS feed and label it based on the domain it came from.
+1. Periodically check for updates to the RSS feeds and retrieve any new stories, labeling them based on the source domain.
 1. Let the job run for months in AWS!
 
 If you're curious about the specifics of how this was all put together, see [this Git repo](https://github.com/davebiagioni/news-crawler).  Suffice it to say, after letting the job run continuously from December 2016 through April 2017, I was able to pull down ~75k labeled news articles of which over 40k are specifically about U.S. politics.  Ideally, this number would be in the 100k+ range, but this is the best I could do given my time and budget :)  And, it turns out, it's enough to do something cool with!
