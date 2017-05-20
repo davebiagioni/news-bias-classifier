@@ -55,7 +55,7 @@ The data set used here wasn't part of a competition or studied in a peer reviewe
 | F1 Score | __0.81__ | 0.71 |
 | Log Loss | __0.46__ | 0.69 | 
 
-Note, these metrics are on a held-out test set that the model never saw -- not too shabby, and a heck of a lot better than random!
+These metrics are on a held-out test set that the model never saw -- not too shabby, and a heck of a lot better than random!
 
 Let's try to understand a little better what it's the model is actually doing.  First, given all of the articles in the dataset, how are the predictions distributed?
 
@@ -67,7 +67,8 @@ Another interesting question is:  given all of the scores for a given domain, ho
 
 (img)
 
-If we round the average score to 0/1, we find that the model correctly classifies articles at the domain-level about 97.4% of the time.  Not bad! This point of view gives an interesting way to rank the entire domain on the political spectrum.  Some interesting features of the ranking:
+If we round the average score to 0/1, we find that the model __correctly classifies articles at the domain-level about 97.4% of the time__.  Not bad! This point of view gives an interesting way to rank the entire domain on the political spectrum.  Some interesting features of the ranking:
 
-* President Trump often singles out NY Times for being too liberal and, lo and behold, the model agrees
-* There's a noticeable jump in the average class scores between `wsfb.com` and `thebleacherreport.com`
+* Our Prez often singles out NY Times for being too liberal and, lo and behold, the model "agrees"
+* There's a noticeable jump in the average class scores between `wsfb.com` and `thebleacherreport.com`.  Those sites have pretty low sample size . . . if we ignore them for the moment, this jump could be interpreted as symptom of the polarization of the news. (?)
+* 
