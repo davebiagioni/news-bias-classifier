@@ -1,10 +1,10 @@
-# Predicting Political Bias in the News with Recurrent Neural Networks
+# Predicting Political Bias in the News with a Recurrent Neural Network
 
 __Under Construction :)__
 
 ## Intro
 
-As an avid consumer of news articles, I'm fascinated by both the craft of journalism and the various ways in which personal, cultural and political biases can shine through even the most disciplined writing.  These biases range from subtle to blatant, with varying degrees of cosmetic cover up.  Beyond entertainment, given the recent polarization of our political arena, understanding bias in the news has become a practical problem that challenges us (normal people who ain't haters) as we try to understand the truth about our world through the eyes and words of others.
+As an avid consumer of news articles, I'm fascinated by both the craft of journalism and the various ways in which personal, cultural and political biases can shine through even the most disciplined writing.  Beyond entertainment, given the recent polarization of our political arena, understanding bias in the news has become a practical problem that challenges us (normal people who ain't haters) as we try to understand the truth about our world through the eyes and words of others.
 
 Being a data scientist, learning about the recent hype around deep learning, I quickly found myself asking:  "Can a neural network understand political bias?  If so, in what way?  And how well?"  The answer to the first questions seems to be "pretty well", and I'll devote the rest of this post trying to explaining the why, the what, and the how.
 
