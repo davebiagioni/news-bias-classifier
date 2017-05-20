@@ -4,11 +4,11 @@ __Under Construction :)__
 
 ## Intro
 
-As an avid consumer of news articles, I'm fascinated by both the craft of journalism and the various ways in which personal, cultural and political biases can shine through even the most disciplined writing.  Beyond entertainment, given the recent polarization of our political arena, understanding bias in the news has become a practical problem that challenges us (normal people who ain't haters) as we try to understand the truth about our world through the eyes and words of others.
+Neural networks have proven to be very good at natural language processing tasks ranging from identifying document sentiment to language translation to text summarization. As an avid consumer of news articles, where the personal, political and cultural biases of the publisher has become increasingly prevalent in recent months, I found myself asking recently:  "Can a neural network identify political bias?"  As it turns out, the answer appears to be a qualified "yes", and in this post I'll describe how I came to this conclusion.
 
-In my work as a data scientist, trying (among other things) to grok the recent hype around deep learning, I quickly found myself asking the question:  "Can a neural network understand political bias?  If so, in what way?  And how well?"  The short answer to the first questions seems to be "pretty well", and I'll devote the rest of this post trying to explaining the why, the what, and the how.
+For the impatient, here is the short story.  I collected and labeled around 75k news articles using a script that ran in AWS for about 4 months.  I then fed this data into a recurrent neural network (RNN) and trained the model to predict the probability of a given article being labeled "conservative" or "liberal".  The results aren't bad, considerably better than any naive guessing strategy.  Furthermore, the models predictions are remarkably good at domain-level classification, meaning on average a publication like the NYTimes is ranked at the liberal end of the spectrum while the Washingon Times is predicted to be highly conservative.  What's particularly interesting about using an RNN for this task is that predictive scores can be attributed to specific points in the text, given us a mechanism to highlight specific words and phrases that model views as biased.
 
-For those not interested in technical details, feel free to skip to the [discussion](#Discussion) :)
+For those less interested in technical details, feel free to skip to the [discussion](#Discussion) :)
 
 ## Building a Dataset
 
@@ -16,38 +16,38 @@ Before describing the dataset, let me be a little more precise about the problem
 
 > On a scale from 0 (conservative) to 1 (liberal), how politically biased is a given news article?
 
-(Please don't attribute any additional meaning to those scores . . . they're just numerical labels! :)  In other words, it's a supervised learning problem (i.e., our training data are labeled) and the dataset needed to be generated accordingly.  Getting enough labeled data is often one of the biggest challenges in any machine learning application, and this problem was no different.  
+(Don't attribute any additional meaning to those scores . . . they're just numerical labels! :)  This is a supervised learning problem (i.e., our training data are labeled) and the dataset needed to be generated accordingly.  
 
-Ultimately, I couldn't find a data set that had the information I wanted so I did what any hacker would do, and decided to create it myself!  Here's what I came up with:
+Getting enough labeled data is often one of the biggest challenges in any machine learning application, and this problem was no different.  Ultimately, I couldn't find a data set that had the information I wanted so I did what any hacker would do, and decided to create it myself!  Here's what I came up with:
 
-1. Do a bunch of web searches to identify domains that are widely considered "liberal" or "conservative".
-1. For each of these domains, hand curate a list of RSS feeds that provide a daily, updated list of URLs for new stories from that site.
+1. Search the web identify domains that are widely considered "liberal" or "conservative".
+1. For each of these domains, hand curate a [list of RSS feeds](https://github.com/davebiagioni/news-crawler/tree/master/rss) that provide a daily, updated list of URLs for new stories from that site.
 1. Periodically check for updates to the RSS feeds and retrieve any new stories, labeling them based on the source domain.
-1. Let the job run for months in AWS!
+1. Let the job run for a few months in AWS!
 
 If you're curious about the specifics of how this was all put together, see [this Git repo](https://github.com/davebiagioni/news-crawler).  Suffice it to say, after letting the job run continuously from December 2016 through April 2017, I was able to pull down ~75k labeled news articles of which over 40k are specifically about U.S. politics.  Ideally, this number would be in the 100k+ range, but this is the best I could do given my time and budget :)  And, it turns out, it's enough to do something cool with!
 
 ## Preprocessing
 
-(Details in [this notebook](https://github.com/davebiagioni/news-classifier-tmp/blob/master/news-classifier/1-preproc.ipynb)).
+(Details in [this notebook](../news-classifier/1-preproc.ipynb)).
 
 Input data was generated by:
 
-- __Lemmatizing__ or reducing words to their stems.  This makes it so that words like `run` and `ran` or `person` and `people` are seen as the same by the model, reducing the space of words the model needs to understand and thereby its complexity and training time.
-- __Part of speech tagging__.  This helps the model disambiguate words that have the same surface forms like, e.g., "duck" or "can" which can be both nouns and verbs depending on context.
+- __Lemmatizing__ or reducing words to their stems.  This makes it so that words like "run" and "ran" or "person" and "people" are seen as the same by the model, reducing the space of words the model needs to understand and thereby its complexity and training time.
+- __Part of speech tagging__.  This helps the model disambiguate words that have the same surface forms like, e.g., "duck" or "can", which can be both nouns and verbs depending on context.
 - __Truncating input sequences__.  This makes the model easier to train, and is also somewhat justifiable for news articles since the crux of the story often appears in the first paragraph or two.
-- __Limiting the size of the vocabulary__ by throwing away all but the top `n` words.  In addition to speeding up training, this is justifiable from the point of view that political bias will often appear in the context of discussing popular topics such as the U.S. Presidency, where those words will be common across articles.
+- __Limiting the vocabulary size__ by throwing away all but the top `n` words.  In addition to speeding up training, this is justifiable from the point of view that political bias will often appear in the context of discussing popular topics such as the U.S. Presidency, where those words will be common across articles.
 
 ## Building and Training a Model
 
-(Details in [this notebook](https://github.com/davebiagioni/news-classifier-tmp/blob/master/news-classifier/2-classify.ipynb)).
+(Details in [this notebook](../news-classifier/2-classify.ipynb)).
 
-I wanted to see how far I could get doing something very simple, so I opted to uses the Keras package in Python.  After experimenting with a bunch of different architectures of varying complexity, but found that a vanilla Gated Recurrent Unit (GRU) worked quite well and was relatively fast to train.  The entire architecture consists of an embedding layer connected to a GRU whose output is then passed through a shallow, fully-connected layer that makes the prediction.  The model was trained on a home desktop equipped with an NVIDIA GeForce 1080 GPU, using Tensorflow on the backend.  
+I wanted to see how far I could get doing something very simple, so I opted to use the Keras package in Python.  After experimenting with a bunch of different architectures of varying complexity, but found that a vanilla Gated Recurrent Unit (GRU) worked quite well and was relatively fast to train.  The entire architecture consists of an embedding layer connected to a GRU whose output is then passed through a shallow, fully-connected layer that makes the prediction.  The model was trained on a home desktop equipped with an NVIDIA GeForce 1080 GPU, using Tensorflow on the backend.  
 
 
 ## Discussion
 
-The data set used here wasn't part of a competition or studied in a peer reviewed journal, so we don't have much to compare model accuracy to.  What we can do, however, is compare it to a "biased guesser" who uses a knowledge of the number of examples per class to make the most probable prediction.  We'll call this the "benchmark" method.    If asked to predict a probability that an article is liberal, the benchmark model would always guess 57% since this percentage of all articles are liberal.  For the same reason, if asked to predict a class it would always predict "liberal".  Here's how the RNN did against the benchmark:
+Since I generated this data set from scratch, I didn't have much to compare model accuracy to.  What I could do, however, was compare it to a "biased guesser" model which uses a knowledge of the number of examples per class to make the most probable prediction.  We'll call this the "benchmark" method.  If asked to predict a probability that an article is liberal, the benchmark model would always guess 57% since this percentage of all articles are liberal.  For the same reason, if asked to predict a specific class labels it would always predict "liberal" (for the same reason).  Here's how the RNN did against the benchmark:
 
 | Metric        | RNN           |  Benchmark  |
 | ------------- |-------------| ----- |
@@ -55,15 +55,15 @@ The data set used here wasn't part of a competition or studied in a peer reviewe
 | F1 Score | __0.81__ | 0.71 |
 | Log Loss | __0.46__ | 0.69 | 
 
-These metrics are on a held-out test set that the model never saw -- not too shabby, and a heck of a lot better than random!
+These metrics are on a held-out test set that the model never saw . . . Not too shabby, and a heck of a lot better than random!
 
-Let's try to understand a little better what it's the model is actually doing.  First, given all of the articles in the dataset, how are the predictions distributed?
+As a data scientist and former scientist scientist, I wanted to dig a little deeper into what the model was actually finding.  An obvious question was: "given all of the articles in the dataset, how are the predictions distributed?"
 
 (img)
 
-We see that the model is really confident about some of the examples, typically conservative ones, but is more nuanced for others.  And actually, this is kind of what we expect and want: after all, not all articles are highly polarized in one direction or the other.
+We see that the model is really confident about some of the examples, typically conservative ones, but is more nuanced for others.  And actually, this is kind of what we expect and want since not all articles are highly polarized in one direction or the other.
 
-Another interesting question is:  given all of the scores for a given domain, how often is the average score correct in terms of the domain attribution?  In other words:  on the scale of 0 to 1, where does the average NY Times article fall compared with, say, Breibart News?  The bar chart below shows exactly this:
+Another interesting question was:  "given all of the scores for a given domain, how often is the average score correct in terms of the domain attribution?"  In other words:  on the scale of 0 to 1, where does the average NY Times article fall compared with, say, Breibart News?  The bar chart below shows exactly this:
 
 (img)
 
