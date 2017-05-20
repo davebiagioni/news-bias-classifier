@@ -1,4 +1,6 @@
-# Predicting Political Bias in the News Using an RNN
+# Predicting Political Bias in the News with Recurrent Neural Networks
+
+__Under Construction :)__
 
 ## Intro
 
