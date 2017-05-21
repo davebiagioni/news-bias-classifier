@@ -48,6 +48,8 @@ In the spirit of keeping it simple, I opted to use the Keras package in Python w
 
 ## Discussion
 
+### Model performance
+
 Since I generated this data set from scratch, I didn't have much to compare model accuracy to.  What I could do, however, was compare it to a "biased guesser" model which uses a knowledge of the number of examples per class to make the most probable prediction.  We'll call this the "benchmark" method.  If asked to predict a probability that an article is liberal, the benchmark model would always guess 57% since this percentage of all articles are liberal.  For the same reason, if asked to predict a specific class labels it would always predict "liberal" (for the same reason).  Here's how the RNN did against the benchmark:
 
 | Metric        | RNN           |  Benchmark  |
@@ -57,6 +59,8 @@ Since I generated this data set from scratch, I didn't have much to compare mode
 | Log Loss | __0.41__ | 0.68 | 
 
 These metrics are on a held-out test set that the model never saw . . . Not too shabby, and a heck of a lot better than random!
+
+### Domain-level classification
 
 I wanted to dig a little deeper into what the model was actually finding.  An obvious question was: "given all of the articles in the dataset, how are the predictions distributed?"
 
@@ -69,3 +73,9 @@ Another interesting question was:  "given all of the scores for a given domain, 
 <div style="text-align:center"><img src="img/avg-prob-by-domain.png" alt="avg-prob-by-domain" class="inline"/></div>
 
 Here green a bar indicates "liberal" label and blue indicates "conservative", and the black vertical line shows the prediction cutoff of 0.5.  If we round the average score to 0/1, we find that the model correctly classifies __100%__ of the top 30 domains (if we include under sampled domains, it's closer to 75%).  Not bad! This point of view gives an interesting way to rank the entire domain on the political spectrum. 
+
+### Examples
+
+
+
+### Word embeddings
