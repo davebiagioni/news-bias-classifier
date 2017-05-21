@@ -17,7 +17,14 @@ NLP = spacy.load('en')
 
 
 def get_file_list(datadir, exclude_regex=None):
-  '''Get a list of the data files.'''
+  '''Get a list of the data files.
+
+  Args:
+    datadir:  directory where data lives.
+    exclude_regex: exclude files that match this regular expression.
+
+  Returns:  List of file names.
+  '''
 
   files = []
   for dirpath, dirnames, filenames in os.walk(datadir):
@@ -31,13 +38,26 @@ def get_file_list(datadir, exclude_regex=None):
 
       
 def clean_string(string):
-  '''Simple preprocessing to remove non-printable characters and excess whitespace.'''
+  '''Simple preprocessing to remove non-printable characters and excess whitespace.
+
+  Args:
+    string:  a string
+
+  Returns:  String with excess whitespace removed.
+  '''
 
   return re.sub('\s+', ' ', string)
 
 
-def create_dataframe_serial(files=None):
-  '''Create a dataframe from a file list, filtering out non-political articles.'''
+def create_dataframe_serial(files=None, politics_only=True):
+  '''Create a dataframe from a file list, optionally filtering out non-political articles.
+
+  Args:
+    files:  list of file names
+    politics_only:  boolean to determine whether non-political articles should be removed
+
+  Returns: pandas data frame
+  '''
 
   df = pd.DataFrame(columns=['text', 'label', 'url'], data=np.chararray((len(files), 3)))
   
@@ -49,14 +69,15 @@ def create_dataframe_serial(files=None):
       data = json.load(f)
     
     # Skip if no taxonomy labels.
-    if len(data['taxonomy']) == 0:
-      continue
+    if politics_only:
+      if len(data['taxonomy']) == 0:
+        continue
 
-    # Get taxonomy labels and filter on "politics", skipping if none exist.
-    labels = [data['taxonomy'][i]['label'] for i in range(len(data['taxonomy']))]
-    labels = [x for x in labels if re.match('.*politics', x)]
-    if len(labels) == 0:
-      continue
+      # Get taxonomy labels and filter on "politics", skipping if none exist.
+      labels = [data['taxonomy'][i]['label'] for i in range(len(data['taxonomy']))]
+      labels = [x for x in labels if re.match('.*politics', x)]
+      if len(labels) == 0:
+        continue
 
     # Populate row, doing basic cleaning of whitespace and non-printable characters
     # in the article text.
@@ -72,7 +93,13 @@ def create_dataframe_serial(files=None):
 
 
 def create_dataframe(files):
-  '''Use multiprocessing to create dataframe.'''
+  '''Use multiprocessing to create a dataframe with cleaned articles.
+
+  Args:
+    files:  file list
+
+  Returns: pandas data frame
+  '''
 
   # Initialize output and mp pool
   df = None
@@ -98,8 +125,6 @@ def create_dataframe(files):
     df = pd.DataFrame()
 
   return df
-
-# Helper function to parse a document.
 
 
 def parse_doc_serial(doc, keep_stops=False, min_sents=3):
