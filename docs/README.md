@@ -60,16 +60,12 @@ These metrics are on a held-out test set that the model never saw . . . Not too 
 
 I wanted to dig a little deeper into what the model was actually finding.  An obvious question was: "given all of the articles in the dataset, how are the predictions distributed?"
 
-<img src="img/prob-dist.png" alt="prob-dist" class="inline"/>
+<div style="text-align:center"><img src="img/prob-dist.png" alt="prob-dist" class="inline"/></div>
 
 We see that the model is really confident about some of the examples, typically conservative ones, but is more nuanced for others.  And actually, this is kind of what we expect and want since not all articles are highly polarized in one direction or the other.
 
 Another interesting question was:  "given all of the scores for a given domain, how often is the average score correct in terms of the domain attribution?"  In other words:  on the scale of 0 to 1, where does the average NY Times article fall compared with, say, Breibart News?  The bar chart below shows exactly this:
 
-<img src="img/avg-prob-by-domain.png" alt="avg-prob-by-domain" class="inline"/>
+<div style="text-align:center"><img src="img/avg-prob-by-domain.png" alt="avg-prob-by-domain" class="inline"/></div>
 
-If we round the average score to 0/1, we find that the model correctly classifies __100%__ of the top 30 domains (if we include under sampled domains, it's closer to 75%).  Not bad! This point of view gives an interesting way to rank the entire domain on the political spectrum.  Some interesting features of the ranking:
-
-* Our Prez often singles out NY Times for being too liberal and, lo and behold, the model "agrees"
-* There's a noticeable jump in the average class scores between `wsfb.com` and `thebleacherreport.com`.  Those sites have pretty low sample size . . . if we ignore them for the moment, this jump could be interpreted as symptom of the polarization of the news. (?)
-* 
+Here green a bar indicates "liberal" label and blue indicates "conservative", and the black vertical line shows the prediction cutoff of 0.5.  If we round the average score to 0/1, we find that the model correctly classifies __100%__ of the top 30 domains (if we include under sampled domains, it's closer to 75%).  Not bad! This point of view gives an interesting way to rank the entire domain on the political spectrum. 
