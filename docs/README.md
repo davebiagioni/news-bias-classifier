@@ -60,13 +60,13 @@ These metrics are on a held-out test set that the model never saw . . . Not too 
 
 I wanted to dig a little deeper into what the model was actually finding.  An obvious question was: "given all of the articles in the dataset, how are the predictions distributed?"
 
-![prob-dist][news-bias-classifier/docs/img/prob-dist.png]
+<img src="img/prob-dist.png" alt="prob-dist" class="inline"/>
 
 We see that the model is really confident about some of the examples, typically conservative ones, but is more nuanced for others.  And actually, this is kind of what we expect and want since not all articles are highly polarized in one direction or the other.
 
 Another interesting question was:  "given all of the scores for a given domain, how often is the average score correct in terms of the domain attribution?"  In other words:  on the scale of 0 to 1, where does the average NY Times article fall compared with, say, Breibart News?  The bar chart below shows exactly this:
 
-![avg-prob-by-domain][news-bias-classifier/docs/img/prob-dist.png]
+<img src="img/avg-prob-by-domain" alt="avg-prob-by-domain" class="inline"/>
 
 If we round the average score to 0/1, we find that the model correctly classifies __100%__ of the top 30 domains (if we include under sampled domains, it's closer to 75%).  Not bad! This point of view gives an interesting way to rank the entire domain on the political spectrum.  Some interesting features of the ranking:
 
