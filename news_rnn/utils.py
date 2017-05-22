@@ -253,7 +253,10 @@ def parse_model_name(name):
 
   gru_dim, embed_dim, dense_dim = map(int, args[:3])
   dropout = float(args[3])
-  bidirectional = bool(args[4])
+  if args[4] == 'True':
+    bidirectional = True
+  else:
+    bidirectional = False
   maxlen, topn = map(int, args[5:7])
   test_size = float(args[7])
   batch_size = int(args[8])
