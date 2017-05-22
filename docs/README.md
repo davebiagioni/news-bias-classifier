@@ -46,7 +46,7 @@ A fair bit of pre-processing was needed to get the data into a shape where an RN
 
 In the spirit of keeping it simple, I opted to use the Keras package in Python which has a nice, high-level interface to various backends.  After experimenting with a bunch of different architectures of varying complexity, but found that a small, vanilla Gated Recurrent Unit (GRU) worked quite well and was relatively fast to train.  The entire architecture consists of an embedding layer connected to a GRU whose output is then passed through a shallow, fully-connected layer that makes the prediction.  The model was trained on a home desktop equipped with an NVIDIA GeForce 1080 GPU, using the Tensorflow GPU Docker image as the Keras backend.
 
-<div style="text-align:center"><img src="img/gru.png" alt="gru-arch" class="inline"/></div>
+<img src="img/gru.png" alt="gru-arch" class="inline"/>
 
 ## Discussion
 
@@ -66,13 +66,13 @@ These metrics are on a held-out test set that the model never saw . . . Not too 
 
 I wanted to dig a little deeper into what the model was actually finding.  An obvious question was: "given all of the articles in the dataset, how are the predictions distributed?"
 
-<div style="text-align:center"><img src="img/prob-dist.png" alt="prob-dist" class="inline"/></div>
+<img src="img/prob-dist.png" alt="prob-dist" class="inline"/>
 
 We see that the model is really confident about some of the examples, typically conservative ones, but is more nuanced for others.  And actually, this is kind of what we expect and want since not all articles are highly polarized in one direction or the other.
 
 Another interesting question was:  "given all of the scores for a given domain, how often is the average score correct in terms of the domain attribution?"  In other words:  on the scale of 0 to 1, where does the average NY Times article fall compared with, say, Breibart News?  The bar chart below shows exactly this:
 
-<div style="text-align:center"><img src="img/avg-prob-by-domain.png" alt="avg-prob-by-domain" class="inline"/></div>
+<img src="img/avg-prob-by-domain.png" alt="avg-prob-by-domain" class="inline"/>
 
 Here green a bar indicates "liberal" label and blue indicates "conservative", and the black vertical line shows the prediction cutoff of 0.5.  If we round the average score to 0/1, it seems that the model correctly classifies __100%__ of the top 30 domains (if we include under sampled domains, it's closer to 75%).  Not bad! This point of view gives an interesting way to rank the entire domain on the political spectrum. 
 
