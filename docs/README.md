@@ -46,6 +46,8 @@ A fair bit of pre-processing was needed to get the data into a shape where an RN
 
 In the spirit of keeping it simple, I opted to use the Keras package in Python which has a nice, high-level interface to various backends.  After experimenting with a bunch of different architectures of varying complexity, but found that a small, vanilla Gated Recurrent Unit (GRU) worked quite well and was relatively fast to train.  The entire architecture consists of an embedding layer connected to a GRU whose output is then passed through a shallow, fully-connected layer that makes the prediction.  The model was trained on a home desktop equipped with an NVIDIA GeForce 1080 GPU, using the Tensorflow GPU Docker image as the Keras backend.
 
+<div style="text-align:center"><img src="img/gru.png" alt="gru-arch" class="inline"/></div>
+
 ## Discussion
 
 ### Model performance
