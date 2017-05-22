@@ -27,7 +27,7 @@ Getting enough labeled data is often one of the biggest challenges in any machin
 
 If you're curious about the specifics of the pipeline, check out [this Git repo](https://github.com/davebiagioni/news-crawler).  Suffice it to say, after letting the job run continuously from December 2016 through April 2017, I was able to pull down ~75k labeled news articles of which over 40k are specifically about U.S. politics.  Ideally, this number would be in the 100k+ range, but this is the best I could do given my time and budget :)  And, it turns out, it's enough to do something cool with!
 
-I tried to make the crawl class-balanced, and got pretty close.  The final data set has 107 different domains, 30 of which have over 100 samples.  These "top 30" are summarized in [this table](top-30-domains.md).
+I tried to make the crawl class-balanced, and got pretty close.  The final data set has 107 different domains, 30 of which have over 100 samples.  You can view domain counts and relative frequency in [this table](domains.md).
 
 ## Preprocessing
 
