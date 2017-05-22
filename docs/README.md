@@ -1,4 +1,4 @@
-# Predicting Political Bias in the News with a Recurrent Neural Network
+# Predicting Political Bias in the News with Recurrent Neural Networks
 
 __Under Construction :)__
 
@@ -27,7 +27,7 @@ Getting enough labeled data is often one of the biggest challenges in any machin
 
 If you're curious about the specifics of the pipeline, check out [this Git repo](https://github.com/davebiagioni/news-crawler).  Suffice it to say, after letting the job run continuously from December 2016 through April 2017, I was able to pull down ~75k labeled news articles of which over 40k are specifically about U.S. politics.  Ideally, this number would be in the 100k+ range, but this is the best I could do given my time and budget :)  And, it turns out, it's enough to do something cool with!
 
-I tried to make the crawl class-balanced, and got pretty close.  The final data set has 107 different domains, 30 of which have over 100 samples.  You can view domain counts and relative frequency in [this table](data/domains.md).  A ranked list of the top 1000 lemmatized vocabulary words, including their total counts, can be viewed [here](data/vocab-1000.csv).  The complete list is (here)[data/vocab-116080.csv].
+I tried to make the crawl class-balanced, and got pretty close.  The final data set has 107 different domains, 30 of which have over 100 samples.  You can view domain counts and relative frequency in [this table](data/domains.md).  A ranked list of the top 1000 lemmatized vocabulary words, including their total counts, can be viewed [here](data/vocab-1000.csv).  The complete list is [here](data/vocab-116080.csv).
 
 ## Preprocessing
 
@@ -50,7 +50,7 @@ In the spirit of keeping it simple, I opted to use the Keras package in Python w
 
 ### Model performance
 
-Since I generated this data set from scratch, I didn't have much to compare model accuracy to.  What I could do, however, was compare it to a "biased guesser" model which uses a knowledge of the number of examples per class to make the most probable prediction.  We'll call this the "benchmark" method.  If asked to predict a probability that an article is liberal, the benchmark model would always guess 57% since this percentage of all articles are liberal.  For the same reason, if asked to predict a specific class labels it would always predict "liberal" (for the same reason).  Here's how the RNN did against the benchmark:
+Since I generated this data set from scratch, I didn't have much to compare model accuracy to.  What I could do, however, was compare it to a "biased guesser" model which uses a knowledge of the number of examples per class to make the most probable prediction.  We'll call this the "benchmark" method.  If asked to predict a probability that an article is liberal, the benchmark model would always guess around 0.57 since this percentage of all articles are liberal.  For the same reason, if asked to predict a specific class labels it would always predict "liberal".  Here's how the RNN did against the benchmark:
 
 | Metric        | RNN           |  Benchmark  |
 | ------------- |-------------| ----- |
@@ -72,7 +72,8 @@ Another interesting question was:  "given all of the scores for a given domain, 
 
 <div style="text-align:center"><img src="img/avg-prob-by-domain.png" alt="avg-prob-by-domain" class="inline"/></div>
 
-Here green a bar indicates "liberal" label and blue indicates "conservative", and the black vertical line shows the prediction cutoff of 0.5.  If we round the average score to 0/1, we find that the model correctly classifies __100%__ of the top 30 domains (if we include under sampled domains, it's closer to 75%).  Not bad! This point of view gives an interesting way to rank the entire domain on the political spectrum. 
+Here green a bar indicates "liberal" label and blue indicates "conservative", and the black vertical line shows the prediction cutoff of 0.5.  If we round the average score to 0/1, it seems that the model correctly classifies __100%__ of the top 30 domains (if we include under sampled domains, it's closer to 75%).  Not bad! This point of view gives an interesting way to rank the entire domain on the political spectrum. 
+
 
 ### Examples
 
