@@ -2,12 +2,18 @@ from keras.models import Sequential, load_model
 from keras.layers import Dense, GRU, Bidirectional, Activation, Dropout
 from keras.layers.core import Dropout
 from keras.layers.embeddings import Embedding
+import numpy as np
 
-def get_training_model(topn, embed_dim, dense_dim, gru_dim, maxlen, dropout, bidirectional):
+
+def get_training_model(topn, embed_dim, dense_dim, gru_dim, maxlen, dropout, 
+  bidirectional):
 
   model = Sequential()
 
+  #model.add(Dropout(input_dropout, input_shape=maxlen))
+
   model.add(Embedding(topn+1, embed_dim, input_length=maxlen))
+  #model.add(Embedding(topn+1, embed_dim))
 
   gru_layer = GRU(gru_dim, dropout=dropout, recurrent_dropout=dropout)
 

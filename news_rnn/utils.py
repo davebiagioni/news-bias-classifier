@@ -246,6 +246,33 @@ def filter_top_words(lst, top_words):
   return lst
 
 
+def dropout_tokens(docs, frac_drop=None, num_drop=None):
+  '''Randomly drop out tokens from input sequences, either by fraction of total or
+  by absolute count.
+  '''
+
+  def drop(indexes, num_drop):
+    drop_idx = np.random.choice(indexes, this_num_drop, replace=False)
+    _ = [indexes.remove(x) for x in drop_idx]
+    return indexes
+
+  if frac_drop:
+    for doc_idx, doc in enumerate(docs):
+      indexes = range(len(doc))
+      this_num_drop = int(frac_drop * len(doc))
+      indexes = drop(indexes, num_drop)
+      docs[doc_idx] = [doc[x] for x in indexes]
+    return docs
+
+  if num_drop:
+    for doc_idx, doc in enumerate(docs):
+      indexes = range(len(doc))
+      this_num_drop = min(len(indexes), num_drop)
+      indexes = drop(indexes, num_drop)
+      docs[doc_idx] = [doc[x] for x in indexes]
+    return docs
+
+
 def parse_model_name(name):
 
   name = os.path.basename(name)
