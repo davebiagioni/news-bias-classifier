@@ -2,7 +2,32 @@ from keras.models import Sequential, load_model
 from keras.layers import Dense, GRU, Bidirectional, Activation, Dropout
 from keras.layers.core import Dropout
 from keras.layers.embeddings import Embedding
+from keras.preprocessing.sequence import pad_sequences
+
 import numpy as np
+
+def data_gen(df, frac_drop, maxlen, topn, validation=False):
+
+  def drop(i, n):
+    drop_idx = np.random.choice(i, n, replace=False)
+    _ = [i.remove(y) for y in drop_idx]
+    return i
+
+  indexes = range(df.shape[0])
+  curr = 0
+  while True:
+    if curr == len(indexes):
+      np.random.shuffle(indexes)
+      curr = 0
+    x = df['encoded_text'].iloc[indexes[curr]]
+    if not validation:
+      idx = drop(range(len(x)), int(frac_drop * len(x)))
+      x = [x[i] for i in idx]
+    x = pad_sequences([x], maxlen=maxlen, value=topn, 
+                      padding='post', truncating='post')
+    y = np.array(df['encoded_label'].iloc[indexes[curr]]).reshape((1, 1))
+    curr += 1
+    yield (x, y)
 
 
 def get_training_model(topn, embed_dim, dense_dim, gru_dim, maxlen, dropout, 
