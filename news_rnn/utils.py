@@ -129,49 +129,53 @@ def create_dataframe(files):
 
 
 def get_shingles(string, size):
-    
-    string = re.sub('\s+', ' ', string)
+    '''Get shingles of a given size from a string.'''
+
+    string = re.sub('\s+', ' ', string)  # remove excess white space
+
     tokens = string.split()
     num = max(1, len(tokens) - size + 1)
     shingles = [' '.join(tokens[i:i+size]) for i in range(num)]
+
     return shingles
 
 
 def find_common_shingles(titles, size, thresh=0.33, min_titles=50):
-    if len(titles) < min_titles:
-      return []
-    c = Counter()
-    title_shingles = [get_shingles(t, size) for t in titles]
-    for t in title_shingles:
-        local_dict = {}
-        for s in t:
-            if s not in local_dict:
-                c.update([s])
-                local_dict[s] = ''
-    common = []
-    for item in c.most_common(100):
-        if (item[1] >= 1. * thresh * len(titles)):
-            common.append(item[0])
-    return common
+  
+  if len(titles) < min_titles:
+    return []
+  c = Counter()
+  title_shingles = [get_shingles(t, size) for t in titles]
+  for t in title_shingles:
+    local_dict = {}
+    for s in t:
+      if s not in local_dict:
+        c.update([s])
+        local_dict[s] = ''
+  common = []
+  for item in c.most_common(100):
+    if (item[1] >= 1. * thresh * len(titles)):
+      common.append(item[0])
+  return common
 
 
 def remove_hints(df, max_size=6, thresh=0.33):   
 
-    domains = df['domain'].value_counts().index.tolist()
-    for domain in domains:
-        domain_idx = df[df['domain'] == domain].index
-        titles = df.ix[domain_idx, 'title'].copy(deep=True).tolist()
-        for size in range(max_size+1)[::-1]:
-            common = find_common_shingles(titles, size, thresh=thresh)
-            if common:
-                for c in common:
-                    if c.lower() != 'trump_propn':
-                        print('{},{},{}'.format(domain, len(titles), c))
-                        titles = [t.replace(c.strip(), '').strip() for t in titles]
-                        titles = [re.sub('\s+', ' ', t) for t in titles]
-                for row, title in zip(domain_idx, titles):
-                  df.set_value(row, 'tokenized', title)
-    return df
+  domains = df['domain'].value_counts().index.tolist()
+  for domain in domains:
+    domain_idx = df[df['domain'] == domain].index
+    titles = df.ix[domain_idx, 'title'].copy(deep=True).tolist()
+    for size in range(max_size+1)[::-1]:
+      common = find_common_shingles(titles, size, thresh=thresh)
+      if common:
+        for c in common:
+          if c.lower() != 'trump_propn':
+            print('{},{},{}'.format(domain, len(titles), c))
+            titles = [t.replace(c.strip(), '').strip() for t in titles]
+            titles = [re.sub('\s+', ' ', t) for t in titles]
+        for row, title in zip(domain_idx, titles):
+          df.set_value(row, 'tokenized', title)
+  return df
 
 
 def parse_doc_serial(doc, keep_stops=False, min_sents=3):

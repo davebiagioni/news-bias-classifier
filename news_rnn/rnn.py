@@ -86,10 +86,15 @@ def split_model_layers(model, topn, embed_dim, dense_dim, gru_dim, num_gru, maxl
   in_model.add(Embedding(topn+1, embed_dim, input_length=maxlen, 
     weights=model.layers[0].get_weights()))
 
-  gru_layer = GRU(gru_dim, weights=model.layers[1].get_weights(), return_sequences=True)
+  for i in range(num_gru):
+    
+    gru_layer = GRU(gru_dim, weights=model.layers[i+1].get_weights(), 
+      return_sequences=True)
 
-  if bidirectional:
-    gru_layer = Bidirectional(gru_layer)
+    if bidirectional:
+      gru_layer = Bidirectional(gru_layer)
+
+    in_model.add(gru_layer)
 
   out_model = Sequential()
 
@@ -97,10 +102,10 @@ def split_model_layers(model, topn, embed_dim, dense_dim, gru_dim, num_gru, maxl
   if bidirectional:
     dense_input_dim *= 2
 
-  out_model.add(Dense(dense_dim, weights=model.layers[3].get_weights(), activation='relu',
+  out_model.add(Dense(dense_dim, weights=model.layers[num_gru+2].get_weights(), activation='relu',
     input_dim=dense_input_dim))
 
-  out_model.add(Dense(1, weights=model.layers[5].get_weights(), activation='sigmoid',
+  out_model.add(Dense(1, weights=model.layers[num_gru+4].get_weights(), activation='sigmoid',
     input_dim=dense_dim))
 
   return in_model, out_model
