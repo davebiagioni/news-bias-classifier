@@ -3,10 +3,12 @@ from keras.layers import Dense, GRU, Bidirectional, Activation, Dropout
 from keras.layers.core import Dropout
 from keras.layers.embeddings import Embedding
 from keras.preprocessing.sequence import pad_sequences
+from keras.optimizers import nadam
+from keras.layers.normalization import BatchNormalization
 
 import numpy as np
 
-def data_gen(df, frac_drop, maxlen, topn, validation=False):
+def data_gen(df, batch_size, frac_drop, maxlen, topn, validation=False):
 
   def drop(i, n):
     drop_idx = np.random.choice(i, n, replace=False)
@@ -16,49 +18,68 @@ def data_gen(df, frac_drop, maxlen, topn, validation=False):
   indexes = range(df.shape[0])
   curr = 0
   while True:
-    if curr == len(indexes):
-      np.random.shuffle(indexes)
-      curr = 0
-    x = df['encoded_text'].iloc[indexes[curr]]
-    if not validation:
-      idx = drop(range(len(x)), int(frac_drop * len(x)))
-      x = [x[i] for i in idx]
-    x = pad_sequences([x], maxlen=maxlen, value=topn, 
-                      padding='post', truncating='post')
-    y = np.array(df['encoded_label'].iloc[indexes[curr]]).reshape((1, 1))
-    curr += 1
-    yield (x, y)
+    X, Y = [], []
+    for batch_idx in range(batch_size):
+      if curr == len(indexes):
+        np.random.shuffle(indexes)
+        curr = 0
+      x = df['encoded_text'].iloc[indexes[curr]]
+      if not validation and frac_drop > 0.001:
+        idx = drop(range(len(x)), int(frac_drop * len(x)))
+        x = [x[i] for i in idx]
+      X.append(x)
+      Y.append(np.array(df['encoded_label'].iloc[indexes[curr]]))
+      curr += 1
+    X = pad_sequences(X, maxlen=maxlen, value=topn,  
+                      padding='post', truncating='post')  
+    Y = np.array(Y).reshape((batch_size, 1))
+    yield (X, Y)
 
 
-def get_training_model(topn, embed_dim, dense_dim, gru_dim, maxlen, dropout, 
-  bidirectional):
+def data_getter(df, maxlen, topn):
+
+  x = pad_sequences(df['encoded_text'].tolist(), maxlen=maxlen, value=topn,
+                   padding='post', truncating='post')
+  y = np.array(df['encoded_label'])
+
+  return x, y
+
+
+def get_training_model(topn, embed_dim, dense_dim, gru_dim, num_gru, maxlen, dropout, 
+  bidirectional, lr=0.001):
 
   model = Sequential()
 
-  #model.add(Dropout(input_dropout, input_shape=maxlen))
-
   model.add(Embedding(topn+1, embed_dim, input_length=maxlen))
-  #model.add(Embedding(topn+1, embed_dim))
 
-  gru_layer = GRU(gru_dim, dropout=dropout, recurrent_dropout=dropout)
-
-  if bidirectional:
-    gru_layer = Bidirectional(gru_layer)
-
-  model.add(gru_layer)
+  for i in range(num_gru):
     
+    if i < (num_gru-1):
+      return_sequences = True
+    else:
+      return_sequences = False
+
+    gru_layer = GRU(gru_dim, dropout=dropout, recurrent_dropout=dropout, 
+      return_sequences=return_sequences)
+
+    if bidirectional:
+      gru_layer = Bidirectional(gru_layer)
+
+    model.add(gru_layer)
+  
   model.add(Dropout(dropout))
   model.add(Dense(dense_dim, activation='relu'))
 
   model.add(Dropout(dropout))
   model.add(Dense(1, activation='sigmoid'))
 
-  _ = model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc'])
+  opt = nadam(lr=lr)
+  _ = model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['acc'])
   
   return model
 
 
-def split_model_layers(model, topn, embed_dim, dense_dim, gru_dim, maxlen, bidirectional):
+def split_model_layers(model, topn, embed_dim, dense_dim, gru_dim, num_gru, maxlen, bidirectional):
 
   in_model = Sequential()
 
@@ -69,8 +90,6 @@ def split_model_layers(model, topn, embed_dim, dense_dim, gru_dim, maxlen, bidir
 
   if bidirectional:
     gru_layer = Bidirectional(gru_layer)
-
-  in_model.add(gru_layer)
 
   out_model = Sequential()
 

@@ -6,6 +6,7 @@ import json
 import sys
 import pickle
 import glob
+import string
 from collections import Counter
 
 import numpy as np
@@ -49,7 +50,7 @@ def clean_string(string):
   return re.sub('\s+', ' ', string)
 
 
-def create_dataframe_serial(files=None, politics_only=True):
+def create_dataframe_serial(files=None, politics_only=False):
   '''Create a dataframe from a file list, optionally filtering out non-political articles.
 
   Args:
@@ -59,7 +60,7 @@ def create_dataframe_serial(files=None, politics_only=True):
   Returns: pandas data frame
   '''
 
-  df = pd.DataFrame(columns=['text', 'label', 'url'], data=np.chararray((len(files), 3)))
+  df = pd.DataFrame(columns=['title', 'label', 'url'], data=np.chararray((len(files), 3)))
   
   row = 0
   for filename in files: 
@@ -81,7 +82,7 @@ def create_dataframe_serial(files=None, politics_only=True):
 
     # Populate row, doing basic cleaning of whitespace and non-printable characters
     # in the article text.
-    df.loc[row] = [clean_string(data['text']), data['label'], data['url']]
+    df.loc[row] = [clean_string(data['title']), data['label'], data['url']]
 
     # Keeping track of the last row we populated.
     row += 1
@@ -103,7 +104,7 @@ def create_dataframe(files):
 
   # Initialize output and mp pool
   df = None
-  pool = mp.Pool()
+  pool = mp.Pool(mp.cpu_count()-1)
 
   # Split the files manually... this is not clean.
   files = [ map(str, x) for x in np.array_split(files, mp.cpu_count())]
@@ -125,6 +126,52 @@ def create_dataframe(files):
     df = pd.DataFrame()
 
   return df
+
+
+def get_shingles(string, size):
+    
+    string = re.sub('\s+', ' ', string)
+    tokens = string.split()
+    num = max(1, len(tokens) - size + 1)
+    shingles = [' '.join(tokens[i:i+size]) for i in range(num)]
+    return shingles
+
+
+def find_common_shingles(titles, size, thresh=0.33, min_titles=50):
+    if len(titles) < min_titles:
+      return []
+    c = Counter()
+    title_shingles = [get_shingles(t, size) for t in titles]
+    for t in title_shingles:
+        local_dict = {}
+        for s in t:
+            if s not in local_dict:
+                c.update([s])
+                local_dict[s] = ''
+    common = []
+    for item in c.most_common(100):
+        if (item[1] >= 1. * thresh * len(titles)):
+            common.append(item[0])
+    return common
+
+
+def remove_hints(df, max_size=6, thresh=0.33):   
+
+    domains = df['domain'].value_counts().index.tolist()
+    for domain in domains:
+        domain_idx = df[df['domain'] == domain].index
+        titles = df.ix[domain_idx, 'title'].copy(deep=True).tolist()
+        for size in range(max_size+1)[::-1]:
+            common = find_common_shingles(titles, size, thresh=thresh)
+            if common:
+                for c in common:
+                    if c.lower() != 'trump_propn':
+                        print('{},{},{}'.format(domain, len(titles), c))
+                        titles = [t.replace(c.strip(), '').strip() for t in titles]
+                        titles = [re.sub('\s+', ' ', t) for t in titles]
+                for row, title in zip(domain_idx, titles):
+                  df.set_value(row, 'tokenized', title)
+    return df
 
 
 def parse_doc_serial(doc, keep_stops=False, min_sents=3):
@@ -188,7 +235,10 @@ def create_vocab(text_list):
 
   c = Counter()
   for item in text_list:
-    c.update(item.split())
+    try:
+      c.update(item.split())
+    except:
+      print('skipping "{}"'.format(item))
     
   print('dictionary size: {}'.format(len(c)))
 
