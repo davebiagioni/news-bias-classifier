@@ -46,7 +46,7 @@ def data_getter(df, maxlen, topn):
 
 
 def get_training_model(topn, embed_dim, dense_dim, gru_dim, num_gru, maxlen, dropout, 
-  bidirectional, lr=0.001):
+  bidirectional, output_size=1, lr=0.001):
 
   model = Sequential()
 
@@ -70,17 +70,26 @@ def get_training_model(topn, embed_dim, dense_dim, gru_dim, num_gru, maxlen, dro
   model.add(Dropout(dropout))
   model.add(Dense(dense_dim, activation='relu'))
 
+  if output_size == 1:
+    activation = 'sigmoid'
+    loss = 'binary_crossentropy'
+  else:
+    activation = 'softmax'
+    loss = 'categorical_crossentropy'
+
   model.add(Dropout(dropout))
-  model.add(Dense(1, activation='sigmoid'))
+  model.add(Dense(output_size, activation=activation))
 
   opt = nadam(lr=lr)
-  _ = model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['acc'])
+  _ = model.compile(loss=loss, optimizer=opt, metrics=['acc'])
   
   return model
 
 
-def split_model_layers(model, topn, embed_dim, dense_dim, gru_dim, num_gru, maxlen, bidirectional):
+def split_model_layers(model, topn, embed_dim, dense_dim, gru_dim, num_gru, maxlen, 
+  output_size, bidirectional):
 
+  # INPUT LAYERS
   in_model = Sequential()
 
   in_model.add(Embedding(topn+1, embed_dim, input_length=maxlen, 
@@ -96,6 +105,7 @@ def split_model_layers(model, topn, embed_dim, dense_dim, gru_dim, num_gru, maxl
 
     in_model.add(gru_layer)
 
+  # OUTPUT LAYERS
   out_model = Sequential()
 
   dense_input_dim = gru_dim
@@ -105,13 +115,21 @@ def split_model_layers(model, topn, embed_dim, dense_dim, gru_dim, num_gru, maxl
   out_model.add(Dense(dense_dim, weights=model.layers[num_gru+2].get_weights(), activation='relu',
     input_dim=dense_input_dim))
 
-  out_model.add(Dense(1, weights=model.layers[num_gru+4].get_weights(), activation='sigmoid',
-    input_dim=dense_dim))
+  if output_size == 1:
+    activation = 'sigmoid'
+  else:
+    activation = 'softmax'
 
+  out_model.add(Dense(output_size, weights=model.layers[num_gru+4].get_weights(), activation=activation,
+    input_dim=dense_dim))
+  
   return in_model, out_model
 
-def evaluate_sequential_probs(X, idx, in_model, out_model):
-  embeddings = in_model.predict_proba(X[idx:idx+1, :], verbose=0)
-  return out_model.predict_proba(embeddings.squeeze(), verbose=0).squeeze()
+def evaluate_sequential_probs(encoded_text, maxlen, topn, in_model, out_model):
+	encoded_text = pad_sequences(encoded_text, maxlen=maxlen, value=topn,
+  	    											 padding='post', truncating='post')
+	embeddings = in_model.predict_proba(encoded_text, verbose=0)
+	print(embeddings.shape)
+	return out_model.predict_proba(embeddings, verbose=0)
 
 
